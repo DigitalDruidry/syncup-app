@@ -32,6 +32,9 @@ import {
 } from 'firebase/firestore';
 
 // --- Firebase Configuration ---
+// TO MAKE THIS WORK ON VERCEL:
+// 1. Go to Firebase Console > Project Settings > General > Your Apps
+// 2. Copy your config values and paste them into the object below.
 const firebaseConfig = {
   apiKey: "AIzaSyB05e5GDNEA0keoQFqyRGYLIhKQmLTV_XU",
   authDomain: "syncup-app-a9d21.firebaseapp.com",
@@ -41,6 +44,19 @@ const firebaseConfig = {
   appId: "1:116950162052:web:02d15f94a1ac05ecfd80d1",
   measurementId: "G-LBGRV67W3J"
 };
+
+// Logic: Use the AI Environment config if available (so this preview works),
+// otherwise use your hardcoded config (so the deployed Vercel app works).
+const firebaseConfig = typeof __firebase_config !== 'undefined' 
+  ? JSON.parse(__firebase_config) 
+  : myFirebaseConfig;
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// Use a fixed App ID for your deployed version
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'friend-group-catchups';
 
 // --- Constants & Utilities ---
 const DEFAULT_IMAGES = [
