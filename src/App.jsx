@@ -37,12 +37,13 @@ import {
 // 2. Copy your config values and paste them into the object below.
 // NOTE: Ensure this variable is named "myFirebaseConfig" so the app can find it!
 const myFirebaseConfig = {
-  apiKey: "AIzaSyB05e5GDNEA0keoQFqyRGYLIhKQmLTV_XU",
+apiKey: "AIzaSyB05e5GDNEA0keoQFqyRGYLIhKQmLTV_XU",
   authDomain: "syncup-app-a9d21.firebaseapp.com",
   projectId: "syncup-app-a9d21",
   storageBucket: "syncup-app-a9d21.firebasestorage.app",
-  messagingSenderId: "G-LBGRV67W3J",
-  appId: "1:116950162052:web:02d15f94a1ac05ecfd80d1"
+  messagingSenderId: "116950162052",
+  appId: "1:116950162052:web:02d15f94a1ac05ecfd80d1",
+  measurementId: "G-LBGRV67W3J"
 };
 
 // Logic: Use the AI Environment config if available (so this preview works),
@@ -428,3 +429,186 @@ export default function App() {
         
         {/* Empty State */}
         {catchups.length === 0 && (
+          <div className="text-center py-20 px-6">
+            <div className="w-20 h-20 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Calendar size={32} className="text-rose-500" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">No catchups yet</h2>
+            <p className="text-gray-500 mb-8 max-w-sm mx-auto">Start planning your next adventure! Add your first catchup to start the timeline.</p>
+            
+            <div className="flex flex-col items-center gap-4">
+              <button 
+                onClick={() => handleOpenModal()}
+                className="text-rose-600 font-medium hover:text-rose-700 underline text-lg"
+              >
+                Plan something now
+              </button>
+              
+              <div className="text-gray-300 text-sm">or</div>
+
+              <button 
+                onClick={handleSeedData}
+                className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 shadow-sm rounded-full text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all"
+              >
+                <Database size={14} />
+                Load Sample Data
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Timeline */}
+        <div className="space-y-8">
+          
+          {upcomingCatchups.length > 0 && (
+            <div className="mb-12">
+               <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-6 ml-11">Upcoming</h2>
+               <div className="space-y-0">
+                 {upcomingCatchups.map((catchup) => (
+                   <CatchupCard 
+                     key={catchup.id} 
+                     catchup={catchup} 
+                     onEdit={handleOpenModal}
+                   />
+                 ))}
+               </div>
+            </div>
+          )}
+
+          {pastCatchups.length > 0 && (
+            <div>
+               <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-6 ml-11">History</h2>
+               <div className="space-y-0">
+                 {pastCatchups.map((catchup) => (
+                   <CatchupCard 
+                     key={catchup.id} 
+                     catchup={catchup} 
+                     onEdit={handleOpenModal}
+                   />
+                 ))}
+               </div>
+            </div>
+          )}
+
+        </div>
+      </main>
+
+      {/* Add/Edit Modal */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={editingCatchup ? 'Edit Details' : 'New Catchup'}
+      >
+        <form onSubmit={handleSave} className="space-y-5">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+            <input
+              type="text"
+              required
+              placeholder="e.g., Birthday Dinner, Beach Day"
+              className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-200 outline-none transition-all"
+              value={formData.title}
+              onChange={e => setFormData({...formData, title: e.target.value})}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Date & Time</label>
+              <input
+                type="datetime-local"
+                required
+                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-200 outline-none transition-all"
+                value={formData.date}
+                onChange={e => setFormData({...formData, date: e.target.value})}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+              <input
+                type="text"
+                placeholder="e.g. Mario's Pizza"
+                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-200 outline-none transition-all"
+                value={formData.location}
+                onChange={e => setFormData({...formData, location: e.target.value})}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Photo URL</label>
+            <div className="flex gap-2">
+              <input
+                type="url"
+                placeholder="https://..."
+                className="flex-1 px-4 py-2 rounded-lg border border-gray-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-200 outline-none transition-all"
+                value={formData.photoUrl}
+                onChange={e => setFormData({...formData, photoUrl: e.target.value})}
+              />
+              <div className="relative group">
+                <button type="button" className="px-3 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+                  <ImageIcon size={20} className="text-gray-600" />
+                </button>
+                {/* Quick select tooltip */}
+                <div className="absolute right-0 bottom-full mb-2 w-48 bg-white shadow-xl rounded-lg p-2 hidden group-hover:block z-50 border border-gray-100">
+                  <p className="text-xs text-gray-400 mb-2 px-1">Quick Select:</p>
+                  <div className="grid grid-cols-2 gap-1">
+                    {DEFAULT_IMAGES.map((img) => (
+                      <button
+                        key={img.name}
+                        type="button"
+                        onClick={() => setFormData({...formData, photoUrl: img.url})}
+                        className="text-xs text-left px-2 py-1.5 hover:bg-rose-50 hover:text-rose-600 rounded"
+                      >
+                        {img.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <textarea
+              rows="3"
+              placeholder="What's the plan? Who is bringing what?"
+              className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-200 outline-none transition-all resize-none"
+              value={formData.description}
+              onChange={e => setFormData({...formData, description: e.target.value})}
+            />
+          </div>
+
+          <div className="flex items-center justify-between pt-4 border-t border-gray-50">
+            {editingCatchup ? (
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="flex items-center gap-2 px-4 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors text-sm font-medium"
+              >
+                <Trash2 size={16} /> Delete
+              </button>
+            ) : <div></div>}
+            
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="px-5 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-6 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium shadow-lg shadow-gray-200 flex items-center gap-2"
+              >
+                <Save size={16} /> Save
+              </button>
+            </div>
+          </div>
+        </form>
+      </Modal>
+    </div>
+  );
+}
